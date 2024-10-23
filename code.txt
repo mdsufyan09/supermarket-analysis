@@ -1,0 +1,76 @@
+# Import required libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the supermarket dataset (assuming it's in a CSV file)
+# Example: "supermarket_sales.csv"
+file_path = "supermarket_sales.csv"
+data = pd.read_csv(file_path)
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(data.head())
+
+# Check for missing values
+print("\nMissing values in the dataset:")
+print(data.isnull().sum())
+
+# Data Cleaning: Dropping rows with missing values (if any)
+data_cleaned = data.dropna()
+
+# Exploratory Data Analysis (EDA)
+
+# Summary statistics of numerical columns
+print("\nSummary Statistics:")
+print(data_cleaned.describe())
+
+# Checking unique values for categorical columns
+print("\nUnique values in each categorical column:")
+for col in data_cleaned.select_dtypes(include=['object']).columns:
+    print(f"{col}: {data_cleaned[col].nunique()} unique values")
+
+# Basic KPIs
+
+# 1. Total Sales (assuming "Quantity" and "UnitPrice" are in the dataset)
+data_cleaned['TotalSales'] = data_cleaned['Quantity'] * data_cleaned['UnitPrice']
+total_sales = data_cleaned['TotalSales'].sum()
+print(f"\nTotal Sales: {total_sales}")
+
+# 2. Number of Transactions
+num_transactions = data_cleaned['InvoiceNo'].nunique()
+print(f"Number of Transactions: {num_transactions}")
+
+# 3. Average Basket Size (average quantity per transaction)
+average_basket_size = data_cleaned.groupby('InvoiceNo')['Quantity'].sum().mean()
+print(f"Average Basket Size: {average_basket_size:.2f}")
+
+# Customer Segmentation (Optional): Based on the 'CustomerID'
+
+# Grouping data by CustomerID and calculating total spend per customer
+customer_sales = data_cleaned.groupby('CustomerID')['TotalSales'].sum().sort_values(ascending=False)
+print("\nTop 5 customers by sales:")
+print(customer_sales.head())
+
+# Visualization: Sales Distribution
+
+plt.figure(figsize=(10, 6))
+sns.histplot(data_cleaned['TotalSales'], bins=30, kde=True)
+plt.title("Distribution of Total Sales per Transaction")
+plt.xlabel("Total Sales")
+plt.ylabel("Frequency")
+plt.show()
+
+# Sales over Time (assuming 'InvoiceDate' is in datetime format)
+data_cleaned['InvoiceDate'] = pd.to_datetime(data_cleaned['InvoiceDate'])
+
+# Grouping by date and plotting total sales per day
+sales_over_time = data_cleaned.groupby(data_cleaned['InvoiceDate'].dt.date)['TotalSales'].sum()
+
+plt.figure(figsize=(12, 6))
+sales_over_time.plot()
+plt.title("Sales Over Time")
+plt.xlabel("Date")
+plt.ylabel("Total Sales")
+plt.grid(True)
+plt.show()
